@@ -1,9 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import heroImg from "@/assets/hero-bosshr.jpeg";
 import logoImg from "@/assets/bosshr-logo.png";
-import ctaBg from "@/assets/cta-bg.jpg";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useEffect, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FocusEvent as ReactFocusEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+  type WheelEvent as ReactWheelEvent,
+} from "react";
 import {
   ArrowUpRight,
   Briefcase,
@@ -20,7 +31,9 @@ import {
   MapPin,
   Clock,
   MessageCircle,
+  Maximize2,
   Menu,
+  Play,
   X,
 } from "lucide-react";
 
@@ -154,14 +167,68 @@ const jobs = [
   },
 ];
 
-const discoverImages = [
-  "https://static.wixstatic.com/media/360f24_6edc9b84666c4bab86b32ba41db6d388f003.jpg/v1/fill/w_900,h_1200,q_85,enc_avif,quality_auto/360f24_6edc9b84666c4bab86b32ba41db6d388f003.jpg",
-  "https://static.wixstatic.com/media/360f24_08c69a8bce7b4c459065b616570311c0f003.jpg/v1/fill/w_900,h_1200,q_85,enc_avif,quality_auto/360f24_08c69a8bce7b4c459065b616570311c0f003.jpg",
-  "https://static.wixstatic.com/media/360f24_c69c437ca25548abb4c76aafcc02a779f003.jpg/v1/fill/w_900,h_1200,q_85,enc_avif,quality_auto/360f24_c69c437ca25548abb4c76aafcc02a779f003.jpg",
-  "https://static.wixstatic.com/media/360f24_8c51356469e045dc945de69ed6f073d3f003.jpg/v1/fill/w_900,h_1200,q_85,enc_avif,quality_auto/360f24_8c51356469e045dc945de69ed6f073d3f003.jpg",
-  "https://static.wixstatic.com/media/360f24_29df9ba11dd24878bbc5366fb0bd24caf003.jpg/v1/fill/w_900,h_1200,q_85,enc_avif,quality_auto/360f24_29df9ba11dd24878bbc5366fb0bd24caf003.jpg",
-  "https://static.wixstatic.com/media/360f24_809144177ed04068a9070a35b5e21868f003.jpg/v1/fill/w_900,h_1200,q_85,enc_avif,quality_auto/360f24_809144177ed04068a9070a35b5e21868f003.jpg",
+type DiscoverMedia = {
+  id: string;
+  src: string;
+  title: string;
+  alt?: string;
+  thumbnail?: string;
+};
+
+const discoverMedia: DiscoverMedia[] = [
+  {
+    id: "story-1",
+    src: "https://static.wixstatic.com/media/360f24_6edc9b84666c4bab86b32ba41db6d388f003.jpg/v1/fill/w_900,h_1200,q_85,enc_avif,quality_auto/360f24_6edc9b84666c4bab86b32ba41db6d388f003.jpg",
+    title: "BOSSHR success story 1",
+    alt: "BOSSHR team success story 1",
+  },
+  {
+    id: "story-2",
+    src: "https://static.wixstatic.com/media/360f24_08c69a8bce7b4c459065b616570311c0f003.jpg/v1/fill/w_900,h_1200,q_85,enc_avif,quality_auto/360f24_08c69a8bce7b4c459065b616570311c0f003.jpg",
+    title: "BOSSHR success story 2",
+    alt: "BOSSHR team success story 2",
+  },
+  {
+    id: "story-3",
+    src: "https://static.wixstatic.com/media/360f24_c69c437ca25548abb4c76aafcc02a779f003.jpg/v1/fill/w_900,h_1200,q_85,enc_avif,quality_auto/360f24_c69c437ca25548abb4c76aafcc02a779f003.jpg",
+    title: "BOSSHR success story 3",
+    alt: "BOSSHR team success story 3",
+  },
+  {
+    id: "story-4",
+    src: "https://static.wixstatic.com/media/360f24_8c51356469e045dc945de69ed6f073d3f003.jpg/v1/fill/w_900,h_1200,q_85,enc_avif,quality_auto/360f24_8c51356469e045dc945de69ed6f073d3f003.jpg",
+    title: "BOSSHR success story 4",
+    alt: "BOSSHR team success story 4",
+  },
+  {
+    id: "story-5",
+    src: "https://static.wixstatic.com/media/360f24_29df9ba11dd24878bbc5366fb0bd24caf003.jpg/v1/fill/w_900,h_1200,q_85,enc_avif,quality_auto/360f24_29df9ba11dd24878bbc5366fb0bd24caf003.jpg",
+    title: "BOSSHR success story 5",
+    alt: "BOSSHR team success story 5",
+  },
+  {
+    id: "story-6",
+    src: "https://static.wixstatic.com/media/360f24_809144177ed04068a9070a35b5e21868f003.jpg/v1/fill/w_900,h_1200,q_85,enc_avif,quality_auto/360f24_809144177ed04068a9070a35b5e21868f003.jpg",
+    title: "BOSSHR success story 6",
+    alt: "BOSSHR team success story 6",
+  },
 ];
+
+const discoverLoopMedia = [...discoverMedia, ...discoverMedia];
+
+function getGoogleDrivePreviewUrl(source: string) {
+  try {
+    const url = new URL(source);
+    if (url.hostname.replace(/^www\./, "") !== "drive.google.com") return null;
+
+    const fileId = url.pathname.match(/\/file\/d\/([^/]+)/)?.[1] ?? url.searchParams.get("id");
+    if (!fileId) return null;
+
+    return `https://drive.google.com/file/d/${encodeURIComponent(fileId)}/preview`;
+  } catch {
+    return null;
+  }
+}
 
 const team = [
   {
@@ -264,18 +331,283 @@ const contacts = [
 ];
 
 const nav = [
+  { href: "#about", label: "About" },
   { href: "#services", label: "Services" },
-  { href: "#why", label: "Why BOSSHR" },
   { href: "#careers", label: "Careers" },
   { href: "#team", label: "Team" },
   { href: "#contact", label: "Contact" },
 ];
+
+const MARQUEE_IDLE_DELAY = 5_000;
+
+function useInteractiveMarquee(
+  interactive: boolean,
+  autoplay: boolean,
+  secondsPerLoop: number,
+  gapPixels: number,
+) {
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const resumeTimerRef = useRef<number | null>(null);
+  const pausedRef = useRef(false);
+  const focusWithinRef = useRef(false);
+  const suppressClickUntilRef = useRef(0);
+  const lastFrameRef = useRef<number | null>(null);
+  const dragRef = useRef({
+    active: false,
+    pointerId: -1,
+    startX: 0,
+    startScrollLeft: 0,
+    didDrag: false,
+  });
+
+  const clearResumeTimer = useCallback(() => {
+    if (resumeTimerRef.current !== null) {
+      window.clearTimeout(resumeTimerRef.current);
+      resumeTimerRef.current = null;
+    }
+  }, []);
+
+  const pauseUntilIdle = useCallback(() => {
+    if (!interactive) return;
+
+    pausedRef.current = true;
+    lastFrameRef.current = null;
+    clearResumeTimer();
+    if (!autoplay) return;
+
+    resumeTimerRef.current = window.setTimeout(() => {
+      pausedRef.current = false;
+      lastFrameRef.current = null;
+      resumeTimerRef.current = null;
+    }, MARQUEE_IDLE_DELAY);
+  }, [autoplay, clearResumeTimer, interactive]);
+
+  const getCycleWidth = useCallback(
+    (viewport: HTMLDivElement) => (viewport.scrollWidth + gapPixels) / 2,
+    [gapPixels],
+  );
+
+  useEffect(() => {
+    clearResumeTimer();
+    lastFrameRef.current = null;
+    pausedRef.current = !autoplay;
+
+    if (!interactive || !autoplay) return;
+
+    const animate = (timestamp: number) => {
+      const viewport = viewportRef.current;
+
+      if (
+        viewport &&
+        !pausedRef.current &&
+        !dragRef.current.active &&
+        !focusWithinRef.current &&
+        !document.hidden
+      ) {
+        if (lastFrameRef.current !== null) {
+          const elapsed = Math.min(timestamp - lastFrameRef.current, 50) / 1_000;
+          const cycleWidth = getCycleWidth(viewport);
+          viewport.scrollLeft += (cycleWidth / secondsPerLoop) * elapsed;
+
+          if (cycleWidth > 0 && viewport.scrollLeft >= cycleWidth) {
+            viewport.scrollLeft -= cycleWidth;
+          }
+        }
+
+        lastFrameRef.current = timestamp;
+      } else {
+        lastFrameRef.current = null;
+      }
+
+      animationFrameRef.current = window.requestAnimationFrame(animate);
+    };
+
+    animationFrameRef.current = window.requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrameRef.current !== null) {
+        window.cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+      clearResumeTimer();
+      dragRef.current.active = false;
+    };
+  }, [autoplay, clearResumeTimer, getCycleWidth, interactive, secondsPerLoop]);
+
+  const onPointerDown = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (!interactive || (event.pointerType === "mouse" && event.button !== 0)) return;
+
+      dragRef.current = {
+        active: true,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startScrollLeft: event.currentTarget.scrollLeft,
+        didDrag: false,
+      };
+      pauseUntilIdle();
+    },
+    [interactive, pauseUntilIdle],
+  );
+
+  const onPointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (!interactive) return;
+
+      const drag = dragRef.current;
+      if (!drag.active || drag.pointerId !== event.pointerId) {
+        if (event.pointerType === "mouse" && (event.movementX !== 0 || event.movementY !== 0)) {
+          pauseUntilIdle();
+        }
+        return;
+      }
+
+      const distance = event.clientX - drag.startX;
+      if (!drag.didDrag && Math.abs(distance) > 4) {
+        drag.didDrag = true;
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }
+
+      if (drag.didDrag) {
+        event.currentTarget.scrollLeft = drag.startScrollLeft - distance;
+        event.preventDefault();
+      }
+    },
+    [interactive, pauseUntilIdle],
+  );
+
+  const finishPointerInteraction = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      const drag = dragRef.current;
+      if (!drag.active || drag.pointerId !== event.pointerId) return;
+
+      drag.active = false;
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+      pauseUntilIdle();
+
+      if (drag.didDrag) {
+        suppressClickUntilRef.current = performance.now() + 250;
+        drag.didDrag = false;
+      }
+    },
+    [pauseUntilIdle],
+  );
+
+  const onPointerCancel = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      dragRef.current.active = false;
+      dragRef.current.didDrag = false;
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+      pauseUntilIdle();
+    },
+    [pauseUntilIdle],
+  );
+
+  const onClickCapture = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
+    if (performance.now() >= suppressClickUntilRef.current) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    suppressClickUntilRef.current = 0;
+  }, []);
+
+  const onWheel = useCallback(
+    (event: ReactWheelEvent<HTMLDivElement>) => {
+      if (!interactive) return;
+
+      const horizontalIntent = Math.abs(event.deltaX) > Math.abs(event.deltaY) || event.shiftKey;
+      if (!horizontalIntent) return;
+
+      pauseUntilIdle();
+      if (event.shiftKey && Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+        event.currentTarget.scrollLeft += event.deltaY;
+        event.preventDefault();
+      }
+    },
+    [interactive, pauseUntilIdle],
+  );
+
+  const onKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLDivElement>) => {
+      if (!interactive || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return;
+
+      pauseUntilIdle();
+    },
+    [interactive, pauseUntilIdle],
+  );
+
+  const onScroll = useCallback(() => {
+    if (interactive && pausedRef.current) pauseUntilIdle();
+  }, [interactive, pauseUntilIdle]);
+
+  const onFocusCapture = useCallback(
+    (event: ReactFocusEvent<HTMLDivElement>) => {
+      if (!interactive) return;
+
+      const focusedElement = event.target as HTMLElement;
+      if (!focusedElement.matches(":focus-visible")) {
+        pauseUntilIdle();
+        return;
+      }
+
+      focusWithinRef.current = true;
+      pausedRef.current = true;
+      lastFrameRef.current = null;
+      clearResumeTimer();
+    },
+    [clearResumeTimer, interactive, pauseUntilIdle],
+  );
+
+  const onBlurCapture = useCallback(
+    (event: ReactFocusEvent<HTMLDivElement>) => {
+      if (!focusWithinRef.current) return;
+      if (event.relatedTarget && event.currentTarget.contains(event.relatedTarget as Node)) return;
+
+      focusWithinRef.current = false;
+      pauseUntilIdle();
+    },
+    [pauseUntilIdle],
+  );
+
+  return {
+    viewportRef,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp: finishPointerInteraction,
+    onPointerCancel,
+    onClickCapture,
+    onWheel,
+    onKeyDown,
+    onScroll,
+    onFocusCapture,
+    onBlurCapture,
+  };
+}
 
 function Index() {
   const reduceMotion = useReducedMotion();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showAllJobs, setShowAllJobs] = useState(false);
   const [showAllTeam, setShowAllTeam] = useState(false);
+  const [showAllTestimonials, setShowAllTestimonials] = useState(false);
+  const [selectedDiscoverMedia, setSelectedDiscoverMedia] = useState<DiscoverMedia | null>(null);
+  const discoverMarquee = useInteractiveMarquee(true, !reduceMotion, 30, 16);
+  const careerMarquee = useInteractiveMarquee(!showAllJobs, !showAllJobs && !reduceMotion, 55, 16);
+  const teamMarquee = useInteractiveMarquee(!showAllTeam, !showAllTeam && !reduceMotion, 45, 24);
+  const testimonialMarquee = useInteractiveMarquee(
+    !showAllTestimonials,
+    !showAllTestimonials && !reduceMotion,
+    55,
+    24,
+  );
+  const selectedDiscoverVideoUrl = selectedDiscoverMedia
+    ? getGoogleDrivePreviewUrl(selectedDiscoverMedia.src)
+    : null;
 
   useEffect(() => {
     window.history.scrollRestoration = "manual";
@@ -301,6 +633,13 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
+      <a
+        href="#main-content"
+        className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-full bg-gold px-4 py-2 text-sm font-medium text-gold-foreground shadow-lg transition-transform focus:translate-y-0 focus:outline-none focus:ring-2 focus:ring-white"
+      >
+        Skip to main content
+      </a>
+
       {/* NAV */}
       <header className="sticky top-0 z-40 border-b border-white/10 bg-gradient-to-r from-[#06152f] via-[#0b3974] to-[#06152f] text-white shadow-lg">
         <div className="container-x flex h-20 items-center justify-between">
@@ -317,7 +656,7 @@ function Index() {
               className="h-16 w-auto object-contain"
             />
           </a>
-          <nav className="hidden gap-8 md:flex">
+          <nav aria-label="Primary navigation" className="hidden gap-8 lg:flex">
             {nav.map((n) => (
               <a
                 key={n.href}
@@ -330,7 +669,7 @@ function Index() {
           </nav>
           <a
             href="#contact"
-            className="hidden items-center gap-1.5 rounded-full bg-gold px-4 py-2 text-sm font-medium text-gold-foreground transition-transform hover:-translate-y-0.5 md:inline-flex"
+            className="hidden items-center gap-1.5 rounded-full bg-gold px-4 py-2 text-sm font-medium text-gold-foreground transition-transform hover:-translate-y-0.5 lg:inline-flex"
           >
             Get in touch <ArrowUpRight className="h-4 w-4" />
           </a>
@@ -340,7 +679,7 @@ function Index() {
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-navigation"
             onClick={() => setMobileMenuOpen((open) => !open)}
-            className="grid h-11 w-11 place-items-center rounded-lg border border-white/20 bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold md:hidden"
+            className="grid h-11 w-11 place-items-center rounded-lg border border-white/20 bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold lg:hidden"
           >
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -357,15 +696,16 @@ function Index() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
                 onClick={() => setMobileMenuOpen(false)}
-                className="fixed inset-x-0 bottom-0 top-20 z-40 cursor-default bg-black/55 backdrop-blur-[2px] md:hidden"
+                className="fixed inset-x-0 bottom-0 top-20 z-40 cursor-default bg-black/55 backdrop-blur-[2px] lg:hidden"
               />
               <motion.nav
                 id="mobile-navigation"
+                aria-label="Mobile navigation"
                 initial={reduceMotion ? false : { x: "100%" }}
                 animate={{ x: 0 }}
                 exit={reduceMotion ? { opacity: 0 } : { x: "100%" }}
                 transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                className="fixed bottom-0 right-0 top-20 z-50 w-[85vw] max-w-sm overflow-y-auto border-l border-white/10 bg-gradient-to-b from-[#0b3974] to-[#06152f] px-6 pb-8 pt-5 shadow-2xl md:hidden"
+                className="fixed bottom-0 right-0 top-20 z-50 w-[85vw] max-w-sm overflow-y-auto border-l border-white/10 bg-gradient-to-b from-[#0b3974] to-[#06152f] px-6 pb-8 pt-5 shadow-2xl lg:hidden"
               >
                 <div className="flex flex-col">
                   <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-gold">
@@ -395,623 +735,845 @@ function Index() {
         </AnimatePresence>
       </header>
 
-      {/* HERO */}
-      <section id="top" className="relative overflow-hidden border-b border-border/60">
-        <div className="relative bg-primary">
-          <motion.img
-            src={heroImg}
-            width={1536}
-            height={1024}
-            alt="BOSSHR Team Consultancy office overlooking the Dubai skyline"
-            fetchPriority="high"
-            initial={reduceMotion ? false : { scale: 1.08 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 2.2, ease: [0.22, 1, 0.36, 1] }}
-            className="block h-auto w-full origin-center transform-gpu"
-          />
-          <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-black/55 via-black/15 to-transparent lg:block" />
-          <div className="bg-neutral-950 py-14 lg:absolute lg:inset-0 lg:flex lg:items-center lg:bg-transparent lg:py-0">
-            <div className="container-x">
-              <motion.div
-                className="flex max-w-2xl flex-col items-start text-left text-primary-foreground lg:max-w-[52%]"
-                initial={reduceMotion ? false : { opacity: 0, y: 28 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <span className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary/40 px-3 py-1 text-xs font-medium tracking-wide text-primary-foreground/80 uppercase backdrop-blur-sm">
-                  <span className="h-1.5 w-1.5 rounded-full bg-gold" /> BOSSHR Team Consultancy FZC
-                  · Ajman, UAE
-                </span>
-                <h1 className="mt-6 font-display text-4xl leading-[1.05] font-medium tracking-tight sm:text-5xl lg:text-7xl">
-                  A bridge to <em className="italic text-gold">better</em> opportunities.
-                </h1>
-                <p className="mt-6 max-w-xl text-base leading-relaxed text-primary-foreground/80 lg:text-lg">
-                  Trusted career guidance, employment consultancy and professional HR support —
-                  helping individuals and businesses achieve their goals with confidence.
-                </p>
-                <div className="mt-8 flex flex-wrap justify-start gap-3">
-                  <a
-                    href="#services"
-                    className="inline-flex items-center gap-1.5 rounded-full bg-gold px-6 py-3 text-sm font-medium text-gold-foreground transition-transform hover:-translate-y-0.5"
-                  >
-                    Our services <ArrowUpRight className="h-4 w-4" />
-                  </a>
-                  <a
-                    href="#about"
-                    className="inline-flex items-center gap-1.5 rounded-full border border-primary-foreground/30 bg-primary-foreground/10 px-6 py-3 text-sm font-medium text-primary-foreground backdrop-blur-sm transition-colors hover:bg-primary-foreground/20"
-                  >
-                    About us
-                  </a>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        </div>
-        <div className="border-t border-border/60 bg-secondary/40">
-          <div className="container-x grid grid-cols-2 divide-x divide-border md:grid-cols-4">
-            {stats.map((s) => (
-              <div key={s.label} className="px-4 py-8">
-                <div className="font-display text-4xl font-medium tracking-tight md:text-5xl">
-                  {s.value}
-                </div>
-                <div className="mt-2 text-sm text-muted-foreground">{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SERVICES */}
-      <section id="services" className="py-24">
-        <div className="container-x">
-          <Reveal className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
-                Our Services
-              </p>
-              <h2 className="mt-3 max-w-2xl font-display text-4xl font-medium md:text-5xl">
-                Solutions that create lasting impact.
-              </h2>
-            </div>
-            <p className="max-w-md text-muted-foreground">
-              From career guidance to full HR support, every service is built around trust, clarity
-              and outcomes.
-            </p>
-          </Reveal>
-
-          <div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
-            {services.map(({ icon: Icon, title, desc }) => (
-              <motion.div
-                key={title}
-                initial={reduceMotion ? false : { opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                whileHover={reduceMotion ? undefined : { y: -5 }}
-                transition={{ duration: 0.45 }}
-                className="group relative bg-card p-8 transition-colors hover:bg-secondary/60"
-              >
-                <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary text-primary-foreground">
-                  <Icon className="h-5 w-5" />
-                </div>
-                <h3 className="mt-6 font-display text-xl font-medium">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{desc}</p>
-                <ArrowUpRight className="absolute right-6 top-6 h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* WATCH & DISCOVER */}
-      <section
-        id="discover"
-        className="overflow-hidden border-b border-border bg-secondary/40 py-24"
-      >
-        <div className="container-x">
-          <Reveal>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
-              Watch &amp; Discover
-            </p>
-            <h2 className="mt-3 font-display text-4xl font-medium md:text-5xl">
-              See BOSSHR in action.
-            </h2>
-            <p className="mt-4 max-w-2xl text-muted-foreground">
-              Explore how BOSSHR Team Consultancy FZC is helping individuals build successful
-              careers through trusted guidance, meaningful opportunities, and real success stories.
-            </p>
-          </Reveal>
-
-          <div className="relative mt-14 overflow-hidden" aria-label="BOSSHR team success stories">
-            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-secondary/90 to-transparent md:w-24" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-secondary/90 to-transparent md:w-24" />
-            <motion.div
-              className="flex w-max gap-4"
-              animate={reduceMotion ? undefined : { x: ["0%", "calc(-50% - 0.5rem)"] }}
-              transition={
-                reduceMotion
-                  ? undefined
-                  : { duration: 30, ease: "linear", repeat: Number.POSITIVE_INFINITY }
-              }
-            >
-              {[...discoverImages, ...discoverImages].map((src, index) => (
-                <motion.figure
-                  key={`${src}-${index}`}
-                  aria-hidden={index >= discoverImages.length}
-                  className="group w-[72vw] shrink-0 overflow-hidden rounded-2xl bg-primary sm:w-80 md:w-96"
+      <main id="main-content" tabIndex={-1}>
+        {/* HERO */}
+        <section id="top" className="relative overflow-hidden border-b border-border/60">
+          <div className="relative bg-primary">
+            <motion.img
+              src={heroImg}
+              width={1536}
+              height={1024}
+              alt="BOSSHR Team Consultancy office overlooking the Dubai skyline"
+              fetchPriority="high"
+              initial={reduceMotion ? false : { scale: 1.08 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 2.2, ease: [0.22, 1, 0.36, 1] }}
+              className="block h-auto w-full origin-center transform-gpu"
+            />
+            <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-black/55 via-black/15 to-transparent lg:block" />
+            <div className="bg-neutral-950 py-14 lg:absolute lg:inset-0 lg:flex lg:items-center lg:bg-transparent lg:py-0">
+              <div className="container-x">
+                <motion.div
+                  className="flex max-w-2xl flex-col items-start text-left text-primary-foreground lg:max-w-[52%]"
+                  initial={reduceMotion ? false : { opacity: 0, y: 28 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <motion.img
-                    src={src}
-                    alt={
-                      index < discoverImages.length ? `BOSSHR team success story ${index + 1}` : ""
-                    }
-                    loading="lazy"
-                    width={900}
-                    height={1200}
-                    whileHover={reduceMotion ? undefined : { scale: 1.045 }}
-                    transition={{ duration: 0.4 }}
-                    className="aspect-[4/5] h-full w-full object-cover"
-                  />
-                </motion.figure>
-              ))}
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* WHY */}
-      <section id="why" className="bg-primary py-24 text-primary-foreground">
-        <div className="container-x">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Why BOSSHR</p>
-          <h2 className="mt-3 max-w-3xl font-display text-4xl font-medium md:text-5xl">
-            A consultancy built on trust.
-          </h2>
-          <p className="mt-4 max-w-2xl text-primary-foreground/70">
-            Helping individuals build brighter futures through trusted guidance, meaningful
-            opportunities and genuine support.
-          </p>
-
-          <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {values.map((v) => (
-              <div
-                key={v.n}
-                className="rounded-2xl border border-primary-foreground/10 bg-primary-foreground/[0.04] p-8 backdrop-blur"
-              >
-                <div className="font-display text-3xl text-gold">{v.n}</div>
-                <h3 className="mt-4 font-display text-xl font-medium text-primary-foreground">
-                  {v.title}
-                </h3>
-                <p className="mt-3 text-sm leading-relaxed text-primary-foreground/70">{v.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CAREERS */}
-      <section id="careers" className="py-24">
-        <div className="container-x">
-          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
-                Career Listings
-              </p>
-              <h2 className="mt-3 max-w-2xl font-display text-4xl font-medium md:text-5xl">
-                Explore opportunities with BOSSHR.
-              </h2>
-              <p className="mt-4 max-w-xl text-muted-foreground">
-                Discover career opportunities across various industries. Find a role that matches
-                your skills, experience and professional goals.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-8 flex justify-end">
-            <button
-              type="button"
-              aria-expanded={showAllJobs}
-              aria-controls="career-list"
-              onClick={() => setShowAllJobs((show) => !show)}
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-card px-5 py-2.5 text-sm font-medium transition-colors hover:border-gold hover:bg-secondary"
-            >
-              {showAllJobs ? "Show less" : "Show all opportunities"}
-              <ArrowUpRight
-                className={`h-4 w-4 transition-transform ${showAllJobs ? "rotate-180" : ""}`}
-              />
-            </button>
-          </div>
-
-          <div
-            id="career-list"
-            className={showAllJobs ? "mt-8" : "relative mt-8 overflow-hidden pb-6"}
-          >
-            {!showAllJobs && (
-              <>
-                <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-10 bg-gradient-to-r from-background to-transparent md:w-20" />
-                <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-10 bg-gradient-to-l from-background to-transparent md:w-20" />
-              </>
-            )}
-            <motion.div
-              layout
-              className={
-                showAllJobs ? "grid gap-4 md:grid-cols-2 lg:grid-cols-3" : "flex w-max gap-4"
-              }
-              animate={
-                !showAllJobs && !reduceMotion ? { x: ["0%", "calc(-50% - 0.5rem)"] } : { x: 0 }
-              }
-              transition={
-                !showAllJobs && !reduceMotion
-                  ? { duration: 55, ease: "linear", repeat: Number.POSITIVE_INFINITY }
-                  : { duration: 0.3 }
-              }
-            >
-              {(showAllJobs ? jobs : [...jobs, ...jobs]).map((j, index) => {
-                const isDuplicate = !showAllJobs && index >= jobs.length;
-
-                return (
-                  <motion.article
-                    key={`${j.title}-${showAllJobs ? "grid" : index}`}
-                    aria-hidden={isDuplicate || undefined}
-                    layout
-                    initial={showAllJobs && !reduceMotion ? { opacity: 0, x: 48 } : false}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true, amount: 0.15 }}
-                    whileHover={reduceMotion ? undefined : { y: -5 }}
-                    transition={{
-                      duration: 0.45,
-                      delay: showAllJobs && !reduceMotion ? (index % jobs.length) * 0.05 : 0,
-                    }}
-                    className={`group relative min-h-80 overflow-hidden rounded-2xl border border-border bg-primary p-6 text-primary-foreground transition-colors hover:border-gold hover:shadow-lg ${
-                      showAllJobs ? "min-w-0" : "w-[85vw] max-w-sm shrink-0 snap-start"
-                    }`}
-                  >
-                    <img
-                      src={j.img}
-                      alt=""
-                      aria-hidden="true"
-                      loading="lazy"
-                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/75 to-primary/25" />
-                    <div className="relative z-10 flex h-full flex-col">
-                      <div className="flex items-start">
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-gold px-2.5 py-1 text-xs font-medium text-gold-foreground">
-                          <span className="h-1.5 w-1.5 rounded-full bg-gold-foreground" /> Now
-                          Hiring
-                        </span>
-                      </div>
-                      <div className="mt-auto pt-12">
-                        <h3 className="font-display text-3xl font-medium">{j.title}</h3>
-                        <p className="mt-2 text-sm leading-relaxed text-primary-foreground/75">
-                          {j.desc}
-                        </p>
-                        <a
-                          href="#contact"
-                          tabIndex={isDuplicate ? -1 : undefined}
-                          className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-gold transition-colors hover:text-white"
-                        >
-                          Apply today <ArrowUpRight className="h-4 w-4" />
-                        </a>
-                      </div>
-                    </div>
-                  </motion.article>
-                );
-              })}
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* ABOUT */}
-      <section id="about" className="border-y border-border bg-secondary/40 py-24">
-        <div className="container-x grid gap-12 md:grid-cols-12">
-          <div className="md:col-span-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">About Us</p>
-          </div>
-          <div className="md:col-span-8">
-            <p className="font-display text-3xl leading-snug tracking-tight md:text-4xl">
-              BOSSHR Team Consultancy FZC is committed to helping individuals move forward through
-              trusted guidance, meaningful opportunities and professional support. We believe every
-              journey deserves the right direction — and a stronger future.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* TEAM */}
-      <section id="team" className="py-24">
-        <div className="container-x">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Our Team</p>
-          <h2 className="mt-3 font-display text-4xl font-medium md:text-5xl">
-            Meet the people behind BOSSHR.
-          </h2>
-          <p className="mt-4 max-w-xl text-muted-foreground">
-            Dedicated professionals committed to guiding, supporting and creating meaningful
-            opportunities for every client.
-          </p>
-
-          <div className="mt-8 flex justify-end">
-            <button
-              type="button"
-              aria-expanded={showAllTeam}
-              aria-controls="team-list"
-              onClick={() => setShowAllTeam((show) => !show)}
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-card px-5 py-2.5 text-sm font-medium transition-colors hover:border-gold hover:bg-secondary"
-            >
-              {showAllTeam ? "Show less" : "Show all team members"}
-              <ArrowUpRight
-                className={`h-4 w-4 transition-transform ${showAllTeam ? "rotate-180" : ""}`}
-              />
-            </button>
-          </div>
-
-          <div
-            id="team-list"
-            className={showAllTeam ? "mt-8" : "relative mt-8 overflow-hidden pb-6"}
-          >
-            {!showAllTeam && (
-              <>
-                <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-10 bg-gradient-to-r from-background to-transparent md:w-20" />
-                <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-10 bg-gradient-to-l from-background to-transparent md:w-20" />
-              </>
-            )}
-            <motion.div
-              layout
-              className={
-                showAllTeam
-                  ? "grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-                  : "flex w-max gap-6"
-              }
-              animate={
-                !showAllTeam && !reduceMotion ? { x: ["0%", "calc(-50% - 0.75rem)"] } : { x: 0 }
-              }
-              transition={
-                !showAllTeam && !reduceMotion
-                  ? { duration: 45, ease: "linear", repeat: Number.POSITIVE_INFINITY }
-                  : { duration: 0.3 }
-              }
-            >
-              {(showAllTeam ? team : [...team, ...team]).map((m, index) => {
-                const isDuplicate = !showAllTeam && index >= team.length;
-
-                return (
-                  <motion.a
-                    key={`${m.name}-${showAllTeam ? "grid" : index}`}
-                    href={`https://wa.me/${m.phone}?text=${encodeURIComponent(`Hello ${m.name}, I found you through the BOSSHR website and would like to enquire.`)}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={`Message ${m.name} on WhatsApp`}
-                    aria-hidden={isDuplicate || undefined}
-                    tabIndex={isDuplicate ? -1 : undefined}
-                    layout
-                    initial={showAllTeam && !reduceMotion ? { opacity: 0, x: 32 } : false}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true, amount: 0.15 }}
-                    transition={{
-                      duration: 0.45,
-                      delay: showAllTeam && !reduceMotion ? (index % team.length) * 0.06 : 0,
-                    }}
-                    className={
-                      showAllTeam ? "group min-w-0" : "group w-[78vw] max-w-72 shrink-0 snap-start"
-                    }
-                  >
-                    <div className="overflow-hidden rounded-2xl bg-secondary">
-                      <img
-                        src={m.img}
-                        alt={m.name}
-                        loading="lazy"
-                        className="aspect-[3/4] w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    </div>
-                    <div className="mt-4 flex items-center justify-between gap-3">
-                      <h3 className="font-display text-lg font-medium">{m.name}</h3>
-                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:scale-105">
-                        <MessageCircle className="h-4 w-4" />
-                      </span>
-                    </div>
-                    <p className="text-sm text-gold-foreground/80">{m.role}</p>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{m.desc}</p>
-                    <p className="mt-3 text-xs font-medium text-primary">Message on WhatsApp</p>
-                  </motion.a>
-                );
-              })}
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* TESTIMONIALS */}
-      <section className="bg-secondary/40 py-24">
-        <div className="container-x">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
-            Client Testimonials
-          </p>
-          <h2 className="mt-3 font-display text-4xl font-medium md:text-5xl">
-            Trusted by professionals.
-          </h2>
-          <p className="mt-4 max-w-xl text-muted-foreground">
-            Why individuals trust BOSSHR Team Consultancy FZC to guide their career journey.
-          </p>
-
-          <div className="mt-14 columns-1 gap-6 md:columns-2 lg:columns-3">
-            {testimonials.map((t) => (
-              <figure
-                key={t.name}
-                className="mb-6 break-inside-avoid rounded-2xl border border-border bg-card p-6"
-              >
-                <div className="flex gap-0.5 text-gold">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-current" />
-                  ))}
-                </div>
-                <blockquote className="mt-4 text-base leading-relaxed text-foreground">
-                  "{t.quote}"
-                </blockquote>
-                <figcaption className="mt-4 text-sm font-medium">{t.name}</figcaption>
-              </figure>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="relative overflow-hidden py-24">
-        <img
-          src={ctaBg}
-          alt=""
-          aria-hidden
-          loading="lazy"
-          width={1600}
-          height={600}
-          className="absolute inset-0 h-full w-full object-cover opacity-90"
-        />
-        <div className="absolute inset-0 bg-primary/70" />
-        <div className="container-x relative">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
-            Ready to Take the Next Step?
-          </p>
-          <h2 className="mt-3 max-w-3xl font-display text-4xl font-medium text-primary-foreground md:text-6xl">
-            Your next opportunity starts today.
-          </h2>
-          <p className="mt-4 max-w-xl text-primary-foreground/80">
-            Let BOSSHR Consultancy help you build a brighter future.
-          </p>
-          <a
-            href="https://wa.me/971502381130"
-            target="_blank"
-            rel="noreferrer"
-            className="mt-8 inline-flex items-center gap-1.5 rounded-full bg-gold px-6 py-3 text-sm font-medium text-gold-foreground transition-transform hover:-translate-y-0.5"
-          >
-            Message us on WhatsApp <ArrowUpRight className="h-4 w-4" />
-          </a>
-        </div>
-      </section>
-
-      {/* CONTACT */}
-      <section id="contact" className="py-24">
-        <div className="container-x grid gap-12 md:grid-cols-12">
-          <div className="md:col-span-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Contact</p>
-            <h2 className="mt-3 font-display text-4xl font-medium md:text-5xl">Let's talk.</h2>
-            <p className="mt-4 text-muted-foreground">
-              Send us a message through WhatsApp or email — we usually respond within one business
-              day.
-            </p>
-
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                href="https://wa.me/971502381130"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-transform hover:-translate-y-0.5"
-              >
-                <MessageCircle className="h-4 w-4" /> WhatsApp +971 50 238 1130
-              </a>
-              <a
-                href="mailto:bosshrteamcc18@gmail.com"
-                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-card px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-gold"
-              >
-                <Mail className="h-4 w-4 text-gold" /> Email us
-              </a>
-            </div>
-
-            <div className="mt-8 space-y-4">
-              <a href="mailto:bosshrteamcc18@gmail.com" className="flex items-start gap-3 text-sm">
-                <Mail className="mt-0.5 h-4 w-4 text-gold" />
-                <span>bosshrteamcc18@gmail.com</span>
-              </a>
-              <div className="flex items-start gap-3 text-sm">
-                <MapPin className="mt-0.5 h-4 w-4 text-gold" />
-                <span>Ajman, United Arab Emirates</span>
-              </div>
-              <div className="flex items-start gap-3 text-sm">
-                <Clock className="mt-0.5 h-4 w-4 text-gold" />
-                <span>Monday – Saturday · 9:00 AM – 6:00 PM</span>
-              </div>
-            </div>
-
-            <div className="mt-8 rounded-2xl border border-border bg-card p-6">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <Phone className="h-4 w-4 text-gold" /> Direct lines
-              </div>
-              <ul className="mt-4 divide-y divide-border text-sm">
-                {contacts.map((c) => (
-                  <li key={c.number} className="flex items-center justify-between py-2.5">
-                    <span className="text-muted-foreground">{c.label}</span>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary/40 px-3 py-1 text-xs font-medium tracking-wide text-primary-foreground/80 uppercase backdrop-blur-sm">
+                    <span className="h-1.5 w-1.5 rounded-full bg-gold" /> BOSSHR Team Consultancy
+                    FZC · Dubai, UAE
+                  </span>
+                  <h1 className="mt-6 font-display text-4xl leading-[1.05] font-medium tracking-tight sm:text-5xl lg:text-7xl">
+                    A bridge to <em className="italic text-gold">better</em> opportunities.
+                  </h1>
+                  <p className="mt-6 max-w-xl text-base leading-relaxed text-primary-foreground/80 lg:text-lg">
+                    Trusted career guidance, employment consultancy and professional HR support —
+                    helping individuals and businesses achieve their goals with confidence.
+                  </p>
+                  <div className="mt-8 flex flex-wrap justify-start gap-3">
                     <a
-                      href={
-                        c.label === "Main"
-                          ? "https://wa.me/971502381130"
-                          : `tel:${c.number.replace(/\s/g, "")}`
-                      }
-                      target={c.label === "Main" ? "_blank" : undefined}
-                      rel={c.label === "Main" ? "noreferrer" : undefined}
-                      className="font-medium tabular-nums hover:text-gold-foreground"
+                      href="#services"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-gold px-6 py-3 text-sm font-medium text-gold-foreground transition-transform hover:-translate-y-0.5"
                     >
-                      {c.number}
-                      {c.label === "Main" && " · WhatsApp"}
+                      Our services <ArrowUpRight className="h-4 w-4" />
                     </a>
-                  </li>
-                ))}
-              </ul>
+                    <a
+                      href="#about"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-primary-foreground/30 bg-primary-foreground/10 px-6 py-3 text-sm font-medium text-primary-foreground backdrop-blur-sm transition-colors hover:bg-primary-foreground/20"
+                    >
+                      About us
+                    </a>
+                  </div>
+                </motion.div>
+              </div>
             </div>
           </div>
+          <div className="border-t border-border/60 bg-secondary/40">
+            <div className="container-x grid grid-cols-2 divide-x divide-border md:grid-cols-4">
+              {stats.map((s) => (
+                <div key={s.label} className="px-4 py-8">
+                  <div className="font-display text-4xl font-medium tracking-tight md:text-5xl">
+                    {s.value}
+                  </div>
+                  <div className="mt-2 text-sm text-muted-foreground">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-          <Reveal className="md:col-span-7">
-            <div className="flex h-full flex-col justify-center rounded-2xl border border-border bg-card p-8 md:p-12">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
-                Direct messaging
-              </p>
-              <h3 className="mt-3 font-display text-3xl font-medium md:text-4xl">
-                Choose how you'd like to reach us.
-              </h3>
-              <p className="mt-4 max-w-xl text-muted-foreground">
-                Start a WhatsApp conversation for a quick response, or send your enquiry directly to
-                our main email inbox.
-              </p>
+        {/* ABOUT */}
+        <section
+          id="about"
+          className="scroll-mt-20 border-b border-border bg-secondary/40 py-16 sm:py-20 lg:py-24"
+        >
+          <div className="container-x grid gap-10 lg:grid-cols-12 lg:gap-16">
+            <Reveal className="lg:col-span-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">About Us</p>
+              <h2 className="mt-4 max-w-xl text-balance font-display text-4xl font-medium leading-tight sm:text-5xl">
+                Helping people move forward with confidence.
+              </h2>
+            </Reveal>
 
-              <div className="mt-10 grid gap-4 sm:grid-cols-2">
-                <a
-                  href="https://wa.me/971502381130"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group flex min-h-52 flex-col justify-between rounded-2xl bg-primary p-6 text-primary-foreground transition-transform hover:-translate-y-1"
+            <Reveal className="lg:col-span-6 lg:col-start-7">
+              <div className="max-w-2xl space-y-5 font-sans text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+                <p>
+                  BOSSHR Team Consultancy FZC provides trusted career guidance, meaningful
+                  employment opportunities and professional HR support for individuals and
+                  businesses across the UAE.
+                </p>
+                <p>
+                  From the first conversation to the next career step, our approach is clear,
+                  personal and focused on practical results. We believe every journey deserves the
+                  right direction — and every person deserves a stronger future.
+                </p>
+              </div>
+
+              <div className="mt-8 border-l-2 border-gold pl-5 sm:pl-6">
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold-foreground">
+                  Our purpose
+                </p>
+                <p className="mt-2 max-w-xl font-sans text-base font-medium leading-7 text-foreground">
+                  To connect people with opportunities that support lasting professional growth.
+                </p>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* SERVICES */}
+        <section id="services" className="scroll-mt-20 py-16 sm:py-20 lg:py-24">
+          <div className="container-x">
+            <Reveal className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+                  Our Services
+                </p>
+                <h2 className="mt-3 max-w-2xl font-display text-4xl font-medium md:text-5xl">
+                  Solutions that create lasting impact.
+                </h2>
+              </div>
+              <p className="max-w-md text-muted-foreground">
+                From career guidance to full HR support, every service is built around trust,
+                clarity and outcomes.
+              </p>
+            </Reveal>
+
+            <div className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2 lg:mt-14 lg:grid-cols-4">
+              {services.map(({ icon: Icon, title, desc }) => (
+                <motion.div
+                  key={title}
+                  initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  whileHover={reduceMotion ? undefined : { y: -5 }}
+                  transition={{ duration: 0.45 }}
+                  className="group relative bg-card p-8 transition-colors hover:bg-secondary/60"
                 >
-                  <span className="grid h-12 w-12 place-items-center rounded-xl bg-primary-foreground/10">
-                    <MessageCircle className="h-6 w-6 text-gold" />
-                  </span>
-                  <span className="mt-8">
-                    <span className="block font-display text-2xl font-medium">WhatsApp</span>
-                    <span className="mt-2 block text-sm text-primary-foreground/70">
-                      +971 50 238 1130
-                    </span>
-                    <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-gold">
-                      Open WhatsApp <ArrowUpRight className="h-4 w-4" />
-                    </span>
-                  </span>
-                </a>
+                  <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary text-primary-foreground">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="mt-6 font-display text-xl font-medium">{title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{desc}</p>
+                  <ArrowUpRight className="absolute right-6 top-6 h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
 
+        {/* WHY */}
+        <section
+          id="why"
+          className="scroll-mt-20 bg-primary py-16 text-primary-foreground sm:py-20 lg:py-24"
+        >
+          <div className="container-x">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Why BOSSHR</p>
+            <h2 className="mt-3 max-w-3xl font-display text-4xl font-medium md:text-5xl">
+              A consultancy built on trust.
+            </h2>
+            <p className="mt-4 max-w-2xl text-primary-foreground/70">
+              Helping individuals build brighter futures through trusted guidance, meaningful
+              opportunities and genuine support.
+            </p>
+
+            <div className="mt-12 grid gap-6 md:grid-cols-2 lg:mt-14 lg:grid-cols-4">
+              {values.map((v) => (
+                <div
+                  key={v.n}
+                  className="rounded-2xl border border-primary-foreground/10 bg-primary-foreground/[0.04] p-8 backdrop-blur"
+                >
+                  <div className="font-display text-3xl text-gold">{v.n}</div>
+                  <h3 className="mt-4 font-display text-xl font-medium text-primary-foreground">
+                    {v.title}
+                  </h3>
+                  <p className="mt-3 text-sm leading-relaxed text-primary-foreground/70">
+                    {v.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* WATCH & DISCOVER */}
+        <section
+          id="discover"
+          className="scroll-mt-20 overflow-hidden border-b border-border bg-secondary/40 py-16 sm:py-20 lg:py-24"
+        >
+          <div className="container-x">
+            <Reveal>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+                Watch &amp; Discover
+              </p>
+              <h2 className="mt-3 font-display text-4xl font-medium md:text-5xl">
+                See BOSSHR in action.
+              </h2>
+              <p className="mt-4 max-w-2xl text-muted-foreground">
+                Explore how BOSSHR Team Consultancy FZC is helping individuals build successful
+                careers through trusted guidance, meaningful opportunities, and real success
+                stories.
+              </p>
+            </Reveal>
+
+            <div
+              className="relative mt-12 overflow-hidden lg:mt-14"
+              aria-label="BOSSHR team success stories"
+            >
+              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-secondary/90 to-transparent md:w-24" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-secondary/90 to-transparent md:w-24" />
+              <div
+                ref={discoverMarquee.viewportRef}
+                role="region"
+                aria-label="BOSSHR success stories carousel. Swipe, drag or scroll horizontally."
+                tabIndex={0}
+                onPointerDown={discoverMarquee.onPointerDown}
+                onPointerMove={discoverMarquee.onPointerMove}
+                onPointerUp={discoverMarquee.onPointerUp}
+                onPointerCancel={discoverMarquee.onPointerCancel}
+                onClickCapture={discoverMarquee.onClickCapture}
+                onWheel={discoverMarquee.onWheel}
+                onKeyDown={discoverMarquee.onKeyDown}
+                onScroll={discoverMarquee.onScroll}
+                onFocusCapture={discoverMarquee.onFocusCapture}
+                onBlurCapture={discoverMarquee.onBlurCapture}
+                className="cursor-grab touch-pan-y overflow-x-auto overscroll-x-contain select-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold focus-visible:outline-none active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                <div className="flex w-max gap-4">
+                  {discoverLoopMedia.map((media, index) => {
+                    const isDuplicate = index >= discoverMedia.length;
+                    const isGoogleDriveVideo = Boolean(getGoogleDrivePreviewUrl(media.src));
+
+                    return (
+                      <motion.button
+                        key={`${media.id}-${index}`}
+                        type="button"
+                        aria-label={
+                          isGoogleDriveVideo ? `Play ${media.title}` : `Expand ${media.title}`
+                        }
+                        aria-hidden={isDuplicate || undefined}
+                        tabIndex={isDuplicate ? -1 : 0}
+                        onClick={() => setSelectedDiscoverMedia(media)}
+                        whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+                        className="group relative w-[72vw] shrink-0 cursor-pointer overflow-hidden rounded-2xl bg-primary text-left focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-secondary focus-visible:outline-none sm:w-80 md:w-96"
+                      >
+                        {isGoogleDriveVideo ? (
+                          media.thumbnail ? (
+                            <motion.img
+                              src={media.thumbnail}
+                              alt=""
+                              aria-hidden="true"
+                              draggable="false"
+                              loading="lazy"
+                              width={900}
+                              height={1200}
+                              whileHover={reduceMotion ? undefined : { scale: 1.045 }}
+                              transition={{ duration: 0.4 }}
+                              className="aspect-[4/5] h-full w-full object-cover"
+                            />
+                          ) : (
+                            <span className="flex aspect-[4/5] w-full flex-col items-center justify-center gap-4 bg-gradient-to-br from-primary via-[#0b3974] to-primary px-6 text-center text-primary-foreground">
+                              <span className="grid h-16 w-16 place-items-center rounded-full bg-gold text-gold-foreground shadow-lg">
+                                <Play className="ml-1 h-7 w-7 fill-current" aria-hidden="true" />
+                              </span>
+                              <span className="font-display text-2xl font-medium">
+                                {media.title}
+                              </span>
+                            </span>
+                          )
+                        ) : (
+                          <motion.img
+                            src={media.src}
+                            alt={isDuplicate ? "" : (media.alt ?? media.title)}
+                            draggable="false"
+                            loading="lazy"
+                            width={900}
+                            height={1200}
+                            whileHover={reduceMotion ? undefined : { scale: 1.045 }}
+                            transition={{ duration: 0.4 }}
+                            className="aspect-[4/5] h-full w-full object-cover"
+                          />
+                        )}
+
+                        <span className="pointer-events-none absolute inset-0 flex items-end justify-end bg-gradient-to-t from-black/35 via-transparent to-transparent p-4 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:group-focus-visible:opacity-100">
+                          <span className="grid h-11 w-11 place-items-center rounded-full bg-black/70 text-white backdrop-blur-sm">
+                            {isGoogleDriveVideo ? (
+                              <Play className="ml-0.5 h-5 w-5 fill-current" aria-hidden="true" />
+                            ) : (
+                              <Maximize2 className="h-5 w-5" aria-hidden="true" />
+                            )}
+                          </span>
+                        </span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <Dialog
+          open={selectedDiscoverMedia !== null}
+          onOpenChange={(open) => {
+            if (!open) setSelectedDiscoverMedia(null);
+          }}
+        >
+          <DialogContent className="max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-6xl gap-0 overflow-hidden border-white/15 bg-neutral-950 p-0 text-white shadow-2xl sm:rounded-2xl [&>button]:right-2 [&>button]:top-2 [&>button]:z-20 [&>button]:grid [&>button]:h-11 [&>button]:w-11 [&>button]:place-items-center [&>button]:rounded-full [&>button]:bg-black/75 [&>button]:text-white [&>button]:opacity-100 [&>button]:ring-offset-black">
+            <DialogTitle className="sr-only">
+              {selectedDiscoverMedia?.title ?? "BOSSHR Watch and Discover media"}
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              {selectedDiscoverVideoUrl
+                ? "Google Drive video player"
+                : "Expanded BOSSHR success story image"}
+            </DialogDescription>
+
+            {selectedDiscoverMedia &&
+              (selectedDiscoverVideoUrl ? (
+                <div className="flex min-h-52 w-full items-center justify-center bg-black">
+                  <iframe
+                    key={selectedDiscoverVideoUrl}
+                    src={selectedDiscoverVideoUrl}
+                    title={selectedDiscoverMedia.title}
+                    allow="autoplay; encrypted-media; fullscreen"
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    className="aspect-video max-h-[calc(100dvh-1rem)] w-full border-0"
+                  />
+                </div>
+              ) : (
+                <div className="flex max-h-[calc(100dvh-1rem)] min-h-0 w-full items-center justify-center overflow-hidden bg-black p-2 sm:p-4">
+                  <img
+                    src={selectedDiscoverMedia.src}
+                    alt={selectedDiscoverMedia.alt ?? selectedDiscoverMedia.title}
+                    className="max-h-[calc(100dvh-3rem)] max-w-full object-contain"
+                  />
+                </div>
+              ))}
+          </DialogContent>
+        </Dialog>
+
+        {/* CAREERS */}
+        <section
+          id="careers"
+          className="scroll-mt-20 border-b border-border py-16 sm:py-20 lg:py-24"
+        >
+          <div className="container-x">
+            <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+                  Career Listings
+                </p>
+                <h2 className="mt-3 max-w-2xl font-display text-4xl font-medium md:text-5xl">
+                  Explore opportunities with BOSSHR.
+                </h2>
+                <p className="mt-4 max-w-xl text-muted-foreground">
+                  Discover career opportunities across various industries. Find a role that matches
+                  your skills, experience and professional goals.
+                </p>
+              </div>
+              <button
+                type="button"
+                aria-expanded={showAllJobs}
+                aria-controls="career-list"
+                onClick={() => setShowAllJobs((show) => !show)}
+                className="inline-flex min-h-11 shrink-0 items-center gap-2 self-start rounded-full border border-border bg-card px-5 py-2.5 text-sm font-medium transition-colors hover:border-gold hover:bg-secondary md:self-auto"
+              >
+                {showAllJobs ? "Show less" : "Show all opportunities"}
+                <ArrowUpRight
+                  className={`h-4 w-4 transition-transform ${showAllJobs ? "rotate-180" : ""}`}
+                />
+              </button>
+            </div>
+
+            <div
+              id="career-list"
+              className={showAllJobs ? "mt-10" : "relative mt-10 overflow-hidden pb-6"}
+            >
+              {!showAllJobs && (
+                <>
+                  <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-10 bg-gradient-to-r from-background to-transparent md:w-20" />
+                  <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-10 bg-gradient-to-l from-background to-transparent md:w-20" />
+                </>
+              )}
+              <div
+                ref={careerMarquee.viewportRef}
+                role="region"
+                aria-label="Career listings carousel. Swipe, drag or scroll horizontally."
+                tabIndex={showAllJobs ? -1 : 0}
+                onPointerDown={careerMarquee.onPointerDown}
+                onPointerMove={careerMarquee.onPointerMove}
+                onPointerUp={careerMarquee.onPointerUp}
+                onPointerCancel={careerMarquee.onPointerCancel}
+                onClickCapture={careerMarquee.onClickCapture}
+                onWheel={careerMarquee.onWheel}
+                onKeyDown={careerMarquee.onKeyDown}
+                onScroll={careerMarquee.onScroll}
+                onFocusCapture={careerMarquee.onFocusCapture}
+                onBlurCapture={careerMarquee.onBlurCapture}
+                className={
+                  showAllJobs
+                    ? "overflow-visible"
+                    : "cursor-grab touch-pan-y overflow-x-auto overscroll-x-contain select-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold focus-visible:outline-none active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                }
+              >
+                <motion.div
+                  layout
+                  className={
+                    showAllJobs ? "grid gap-4 md:grid-cols-2 lg:grid-cols-3" : "flex w-max gap-4"
+                  }
+                  animate={{ x: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {(showAllJobs ? jobs : [...jobs, ...jobs]).map((j, index) => {
+                    const isDuplicate = !showAllJobs && index >= jobs.length;
+
+                    return (
+                      <motion.article
+                        key={`${j.title}-${showAllJobs ? "grid" : index}`}
+                        aria-hidden={isDuplicate || undefined}
+                        layout
+                        initial={showAllJobs && !reduceMotion ? { opacity: 0, x: 48 } : false}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true, amount: 0.15 }}
+                        whileHover={reduceMotion ? undefined : { y: -5 }}
+                        transition={{
+                          duration: 0.45,
+                          delay: showAllJobs && !reduceMotion ? (index % jobs.length) * 0.05 : 0,
+                        }}
+                        className={`group relative min-h-80 overflow-hidden rounded-2xl border border-border bg-primary p-6 text-primary-foreground transition-colors hover:border-gold hover:shadow-lg ${
+                          showAllJobs ? "min-w-0" : "w-[84vw] max-w-sm shrink-0 snap-start"
+                        }`}
+                      >
+                        <img
+                          src={j.img}
+                          alt=""
+                          aria-hidden="true"
+                          draggable="false"
+                          loading="lazy"
+                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/75 to-primary/25" />
+                        <div className="relative z-10 flex h-full flex-col">
+                          <div className="flex items-start">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-gold px-2.5 py-1 text-xs font-medium text-gold-foreground">
+                              <span className="h-1.5 w-1.5 rounded-full bg-gold-foreground" /> Now
+                              Hiring
+                            </span>
+                          </div>
+                          <div className="mt-auto pt-12">
+                            <h3 className="font-display text-3xl font-medium">{j.title}</h3>
+                            <p className="mt-2 text-sm leading-relaxed text-primary-foreground/75">
+                              {j.desc}
+                            </p>
+                            <a
+                              href="#contact"
+                              draggable="false"
+                              tabIndex={isDuplicate ? -1 : undefined}
+                              className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-gold transition-colors hover:text-white"
+                            >
+                              Apply today <ArrowUpRight className="h-4 w-4" />
+                            </a>
+                          </div>
+                        </div>
+                      </motion.article>
+                    );
+                  })}
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* TEAM */}
+        <section
+          id="team"
+          className="scroll-mt-20 border-b border-border bg-secondary/40 py-16 sm:py-20 lg:py-24"
+        >
+          <div className="container-x">
+            <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+                  Our Team
+                </p>
+                <h2 className="mt-3 font-display text-4xl font-medium md:text-5xl">
+                  Meet the people behind BOSSHR.
+                </h2>
+                <p className="mt-4 max-w-xl text-muted-foreground">
+                  Dedicated professionals committed to guiding, supporting and creating meaningful
+                  opportunities for every client.
+                </p>
+              </div>
+              <button
+                type="button"
+                aria-expanded={showAllTeam}
+                aria-controls="team-list"
+                onClick={() => setShowAllTeam((show) => !show)}
+                className="inline-flex min-h-11 shrink-0 items-center gap-2 self-start rounded-full border border-border bg-card px-5 py-2.5 text-sm font-medium transition-colors hover:border-gold hover:bg-secondary md:self-auto"
+              >
+                {showAllTeam ? "Show less" : "Show all team members"}
+                <ArrowUpRight
+                  className={`h-4 w-4 transition-transform ${showAllTeam ? "rotate-180" : ""}`}
+                />
+              </button>
+            </div>
+
+            <div
+              id="team-list"
+              className={showAllTeam ? "mt-10" : "relative mt-10 overflow-hidden pb-6"}
+            >
+              {!showAllTeam && (
+                <>
+                  <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-10 bg-gradient-to-r from-secondary/95 to-transparent md:w-20" />
+                  <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-10 bg-gradient-to-l from-secondary/95 to-transparent md:w-20" />
+                </>
+              )}
+              <div
+                ref={teamMarquee.viewportRef}
+                role="region"
+                aria-label="Team members carousel. Swipe, drag or scroll horizontally."
+                tabIndex={showAllTeam ? -1 : 0}
+                onPointerDown={teamMarquee.onPointerDown}
+                onPointerMove={teamMarquee.onPointerMove}
+                onPointerUp={teamMarquee.onPointerUp}
+                onPointerCancel={teamMarquee.onPointerCancel}
+                onClickCapture={teamMarquee.onClickCapture}
+                onWheel={teamMarquee.onWheel}
+                onKeyDown={teamMarquee.onKeyDown}
+                onScroll={teamMarquee.onScroll}
+                onFocusCapture={teamMarquee.onFocusCapture}
+                onBlurCapture={teamMarquee.onBlurCapture}
+                className={
+                  showAllTeam
+                    ? "overflow-visible"
+                    : "cursor-grab touch-pan-y overflow-x-auto overscroll-x-contain select-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold focus-visible:outline-none active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                }
+              >
+                <motion.div
+                  layout
+                  className={
+                    showAllTeam
+                      ? "grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                      : "flex w-max gap-6"
+                  }
+                  animate={{ x: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {(showAllTeam ? team : [...team, ...team]).map((m, index) => {
+                    const isDuplicate = !showAllTeam && index >= team.length;
+
+                    return (
+                      <motion.a
+                        key={`${m.name}-${showAllTeam ? "grid" : index}`}
+                        href={`https://wa.me/${m.phone}?text=${encodeURIComponent(`Hello ${m.name}, I found you through the BOSSHR website and would like to enquire.`)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        draggable="false"
+                        aria-label={`Message ${m.name} on WhatsApp`}
+                        aria-hidden={isDuplicate || undefined}
+                        tabIndex={isDuplicate ? -1 : undefined}
+                        layout
+                        initial={showAllTeam && !reduceMotion ? { opacity: 0, x: 32 } : false}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true, amount: 0.15 }}
+                        transition={{
+                          duration: 0.45,
+                          delay: showAllTeam && !reduceMotion ? (index % team.length) * 0.06 : 0,
+                        }}
+                        className={
+                          showAllTeam
+                            ? "group min-w-0"
+                            : "group w-[84vw] max-w-xs shrink-0 snap-start"
+                        }
+                      >
+                        <div className="overflow-hidden rounded-2xl bg-secondary">
+                          <img
+                            src={m.img}
+                            alt={m.name}
+                            draggable="false"
+                            loading="lazy"
+                            className="aspect-[3/4] w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        </div>
+                        <div className="mt-4 flex items-center justify-between gap-3">
+                          <h3 className="font-display text-lg font-medium">{m.name}</h3>
+                          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:scale-105">
+                            <MessageCircle className="h-4 w-4" />
+                          </span>
+                        </div>
+                        <p className="text-sm text-gold-foreground/80">{m.role}</p>
+                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                          {m.desc}
+                        </p>
+                        <p className="mt-3 text-xs font-medium text-primary">Message on WhatsApp</p>
+                      </motion.a>
+                    );
+                  })}
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* TESTIMONIALS */}
+        <section
+          id="testimonials"
+          className="scroll-mt-20 border-b border-border py-16 sm:py-20 lg:py-24"
+        >
+          <div className="container-x">
+            <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
+              <Reveal>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+                  Client Testimonials
+                </p>
+                <h2 className="mt-3 font-display text-4xl font-medium md:text-5xl">
+                  Trusted by professionals.
+                </h2>
+                <p className="mt-4 max-w-xl text-muted-foreground">
+                  Why individuals trust BOSSHR Team Consultancy FZC to guide their career journey.
+                </p>
+              </Reveal>
+              <button
+                type="button"
+                aria-expanded={showAllTestimonials}
+                aria-controls="testimonial-list"
+                onClick={() => setShowAllTestimonials((show) => !show)}
+                className="inline-flex min-h-11 shrink-0 items-center gap-2 self-start rounded-full border border-border bg-card px-5 py-2.5 text-sm font-medium transition-colors hover:border-gold hover:bg-secondary md:self-auto"
+              >
+                {showAllTestimonials ? "Show less" : "Show all testimonials"}
+                <ArrowUpRight
+                  className={`h-4 w-4 transition-transform ${showAllTestimonials ? "rotate-180" : ""}`}
+                />
+              </button>
+            </div>
+
+            <div
+              id="testimonial-list"
+              className={showAllTestimonials ? "mt-10" : "relative mt-10 overflow-hidden pb-6"}
+            >
+              {!showAllTestimonials && (
+                <>
+                  <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-10 bg-gradient-to-r from-background to-transparent md:w-20" />
+                  <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-10 bg-gradient-to-l from-background to-transparent md:w-20" />
+                </>
+              )}
+
+              <div
+                ref={testimonialMarquee.viewportRef}
+                role="region"
+                aria-label="Client testimonials carousel. Swipe, drag or scroll horizontally."
+                tabIndex={showAllTestimonials ? -1 : 0}
+                onPointerDown={testimonialMarquee.onPointerDown}
+                onPointerMove={testimonialMarquee.onPointerMove}
+                onPointerUp={testimonialMarquee.onPointerUp}
+                onPointerCancel={testimonialMarquee.onPointerCancel}
+                onClickCapture={testimonialMarquee.onClickCapture}
+                onWheel={testimonialMarquee.onWheel}
+                onKeyDown={testimonialMarquee.onKeyDown}
+                onScroll={testimonialMarquee.onScroll}
+                onFocusCapture={testimonialMarquee.onFocusCapture}
+                onBlurCapture={testimonialMarquee.onBlurCapture}
+                className={
+                  showAllTestimonials
+                    ? "overflow-visible"
+                    : "cursor-grab touch-pan-y overflow-x-auto overscroll-x-contain select-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold focus-visible:outline-none active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                }
+              >
+                <motion.div
+                  layout
+                  className={
+                    showAllTestimonials
+                      ? "grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+                      : "flex w-max gap-6"
+                  }
+                  animate={{ x: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {(showAllTestimonials ? testimonials : [...testimonials, ...testimonials]).map(
+                    (t, index) => {
+                      const isDuplicate = !showAllTestimonials && index >= testimonials.length;
+
+                      return (
+                        <motion.figure
+                          layout
+                          key={`${t.name}-${showAllTestimonials ? "grid" : index}`}
+                          aria-hidden={isDuplicate}
+                          initial={
+                            showAllTestimonials && !reduceMotion ? { opacity: 0, x: 32 } : false
+                          }
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{
+                            duration: 0.35,
+                            delay:
+                              showAllTestimonials && !reduceMotion
+                                ? (index % testimonials.length) * 0.05
+                                : 0,
+                          }}
+                          className={`flex min-h-64 flex-col rounded-2xl border border-border bg-card p-6 ${
+                            showAllTestimonials
+                              ? "min-w-0"
+                              : "w-[84vw] max-w-md shrink-0 snap-start"
+                          }`}
+                        >
+                          <div className="flex gap-0.5 text-gold" aria-label="5 out of 5 stars">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star key={i} className="h-4 w-4 fill-current" aria-hidden="true" />
+                            ))}
+                          </div>
+                          <blockquote className="mt-5 text-base leading-relaxed text-foreground">
+                            “{t.quote}”
+                          </blockquote>
+                          <figcaption className="mt-auto pt-6 text-sm font-medium">
+                            {t.name}
+                          </figcaption>
+                        </motion.figure>
+                      );
+                    },
+                  )}
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CONTACT */}
+        <section id="contact" className="scroll-mt-20 py-16 sm:py-20 lg:py-24">
+          <div className="container-x grid gap-12 md:grid-cols-12">
+            <div className="md:col-span-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Contact</p>
+              <h2 className="mt-3 font-display text-4xl font-medium md:text-5xl">Let's talk.</h2>
+              <p className="mt-4 text-muted-foreground">
+                Send us a message through WhatsApp or email — we usually respond within one business
+                day.
+              </p>
+
+              <div className="mt-8 space-y-4">
                 <a
                   href="mailto:bosshrteamcc18@gmail.com"
-                  className="group flex min-h-52 flex-col justify-between rounded-2xl border border-border bg-secondary/50 p-6 transition-all hover:-translate-y-1 hover:border-gold"
+                  className="flex items-start gap-3 text-sm"
                 >
-                  <span className="grid h-12 w-12 place-items-center rounded-xl bg-gold/15">
-                    <Mail className="h-6 w-6 text-gold-foreground" />
-                  </span>
-                  <span className="mt-8">
-                    <span className="block font-display text-2xl font-medium">Email</span>
-                    <span className="mt-2 block break-all text-sm text-muted-foreground">
-                      bosshrteamcc18@gmail.com
-                    </span>
-                    <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-gold-foreground">
-                      Open email app <ArrowUpRight className="h-4 w-4" />
-                    </span>
-                  </span>
+                  <Mail className="mt-0.5 h-4 w-4 text-gold" />
+                  <span>bosshrteamcc18@gmail.com</span>
                 </a>
+                <div className="flex items-start gap-3 text-sm">
+                  <MapPin className="mt-0.5 h-4 w-4 text-gold" />
+                  <span>
+                    Office 18, 2nd Floor, Al Kazim Building (Abu Saif Business Center), Dubai,
+                    United Arab Emirates
+                  </span>
+                </div>
+                <div className="flex items-start gap-3 text-sm">
+                  <Clock className="mt-0.5 h-4 w-4 text-gold" />
+                  <span>Monday – Saturday · 9:00 AM – 6:00 PM</span>
+                </div>
+              </div>
+
+              <div className="mt-8 rounded-2xl border border-border bg-card p-6">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Phone className="h-4 w-4 text-gold" /> Direct lines
+                </div>
+                <ul className="mt-4 divide-y divide-border text-sm">
+                  {contacts.map((c) => (
+                    <li key={c.number} className="flex items-center justify-between py-2.5">
+                      <span className="text-muted-foreground">{c.label}</span>
+                      <a
+                        href={
+                          c.label === "Main"
+                            ? "https://wa.me/971502381130"
+                            : `tel:${c.number.replace(/\s/g, "")}`
+                        }
+                        target={c.label === "Main" ? "_blank" : undefined}
+                        rel={c.label === "Main" ? "noreferrer" : undefined}
+                        className="font-medium tabular-nums hover:text-gold-foreground"
+                      >
+                        {c.number}
+                        {c.label === "Main" && " · WhatsApp"}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
-          </Reveal>
-        </div>
-      </section>
+
+            <Reveal className="md:col-span-7">
+              <div className="flex h-full flex-col justify-center rounded-2xl border border-border bg-card p-8 md:p-12">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+                  Direct messaging
+                </p>
+                <h3 className="mt-3 font-display text-3xl font-medium md:text-4xl">
+                  Choose how you'd like to reach us.
+                </h3>
+                <p className="mt-4 max-w-xl text-muted-foreground">
+                  Start a WhatsApp conversation for a quick response, or send your enquiry directly
+                  to our main email inbox.
+                </p>
+
+                <div className="mt-10 grid gap-4 sm:grid-cols-2">
+                  <a
+                    href="https://wa.me/971502381130"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group flex min-h-52 flex-col justify-between rounded-2xl bg-primary p-6 text-primary-foreground transition-transform hover:-translate-y-1"
+                  >
+                    <span className="grid h-12 w-12 place-items-center rounded-xl bg-primary-foreground/10">
+                      <MessageCircle className="h-6 w-6 text-gold" />
+                    </span>
+                    <span className="mt-8">
+                      <span className="block font-display text-2xl font-medium">WhatsApp</span>
+                      <span className="mt-2 block text-sm text-primary-foreground/70">
+                        +971 50 238 1130
+                      </span>
+                      <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-gold">
+                        Open WhatsApp <ArrowUpRight className="h-4 w-4" />
+                      </span>
+                    </span>
+                  </a>
+
+                  <a
+                    href="mailto:bosshrteamcc18@gmail.com"
+                    className="group flex min-h-52 flex-col justify-between rounded-2xl border border-border bg-secondary/50 p-6 transition-all hover:-translate-y-1 hover:border-gold"
+                  >
+                    <span className="grid h-12 w-12 place-items-center rounded-xl bg-gold/15">
+                      <Mail className="h-6 w-6 text-gold-foreground" />
+                    </span>
+                    <span className="mt-8">
+                      <span className="block font-display text-2xl font-medium">Email</span>
+                      <span className="mt-2 block break-all text-sm text-muted-foreground">
+                        bosshrteamcc18@gmail.com
+                      </span>
+                      <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-gold-foreground">
+                        Open email app <ArrowUpRight className="h-4 w-4" />
+                      </span>
+                    </span>
+                  </a>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+      </main>
 
       {/* FOOTER */}
       <footer className="border-t border-border bg-primary text-primary-foreground">
@@ -1042,27 +1604,38 @@ function Index() {
             </ul>
           </div>
           <div className="md:col-span-4">
-            <h4 className="font-display text-sm font-medium text-primary-foreground">
-              Stay in the know
-            </h4>
-            <p className="mt-4 text-sm text-primary-foreground/70">
-              Be among the first to hear about latest news, tips, events and special offers.
-            </p>
-            <form className="mt-4 flex gap-2" onSubmit={(e) => e.preventDefault()}>
-              <input
-                type="email"
-                placeholder="your@email.com"
-                className="flex-1 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-2.5 text-sm text-primary-foreground placeholder:text-primary-foreground/50 outline-none focus:border-gold"
-              />
-              <button className="rounded-full bg-gold px-5 py-2.5 text-sm font-medium text-gold-foreground">
-                Sign up
-              </button>
-            </form>
+            <h4 className="font-display text-sm font-medium text-primary-foreground">Contact</h4>
+            <ul className="mt-4 space-y-3 text-sm text-primary-foreground/70">
+              <li>
+                <a
+                  href="https://wa.me/971502381130"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 transition-colors hover:text-gold"
+                >
+                  <MessageCircle className="h-4 w-4 text-gold" aria-hidden="true" />
+                  WhatsApp +971 50 238 1130
+                </a>
+              </li>
+              <li>
+                <a
+                  href="mailto:bosshrteamcc18@gmail.com"
+                  className="inline-flex items-center gap-2 transition-colors hover:text-gold"
+                >
+                  <Mail className="h-4 w-4 text-gold" aria-hidden="true" />
+                  bosshrteamcc18@gmail.com
+                </a>
+              </li>
+              <li className="flex items-start gap-2">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
+                <span>Office 18, Al Kazim Building, Dubai, UAE</span>
+              </li>
+            </ul>
           </div>
         </div>
         <div className="border-t border-primary-foreground/10">
           <div className="container-x flex flex-col justify-between gap-3 py-6 text-xs text-primary-foreground/60 md:flex-row">
-            <span>© 2026 BOSSHR Team Consultancy · Ajman, UAE · +971 50 238 1130</span>
+            <span>© 2026 BOSSHR Team Consultancy · Dubai, UAE · +971 50 238 1130</span>
             <a
               href="https://makoyportfolio.vercel.app/"
               target="_blank"
