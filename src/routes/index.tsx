@@ -31,6 +31,7 @@ import {
   MapPin,
   Clock,
   MessageCircle,
+  Globe2,
   Maximize2,
   Menu,
   Play,
@@ -42,88 +43,93 @@ export const Route = createFileRoute("/")({
 });
 
 const stats = [
-  { value: "98%", label: "Client satisfaction in HR consultancy" },
-  { value: "500+", label: "Career consultations delivered" },
-  { value: "100%", label: "Client-focused support" },
-  { value: "24/7", label: "Online inquiry support" },
+  { value: "UAE", label: "Licensed and based in the UAE" },
+  { value: "Global", label: "Serving people wherever they are" },
+  { value: "All", label: "Nationalities are welcome" },
+  { value: "100%", label: "Client-focused and results-driven" },
 ];
 
 const services = [
   {
-    icon: Compass,
-    title: "Career Consultancy",
-    desc: "Personalized guidance to help you chart the next chapter of your professional life.",
-  },
-  {
-    icon: FileText,
-    title: "Employment Advisory",
-    desc: "Practical, honest advice on offers, contracts and career transitions.",
+    icon: Users,
+    title: "Human Resources Consultancy",
+    desc: "Practical people strategies and HR support built around your organization.",
   },
   {
     icon: Briefcase,
-    title: "Recruitment Consultancy",
-    desc: "Matching qualified professionals with the right employers across industries.",
-  },
-  {
-    icon: Users,
-    title: "Workforce Advisory",
-    desc: "Strategic workforce planning for growing teams and organizations.",
-  },
-  {
-    icon: ClipboardList,
-    title: "Documentation Assistance",
-    desc: "End-to-end support with employment documents and processing.",
-  },
-  {
-    icon: UserCheck,
-    title: "Applicant Management",
-    desc: "Organized applicant coordination from first contact to placement.",
+    title: "Tourism & Leisure Consulting",
+    desc: "Business support for organizations operating across tourism and leisure.",
   },
   {
     icon: GraduationCap,
-    title: "Professional Development",
-    desc: "Programs and coaching that build lasting career capability.",
+    title: "Marketing Management",
+    desc: "Focused marketing direction that supports visibility, growth and results.",
+  },
+  {
+    icon: UserCheck,
+    title: "Commercial Brokers",
+    desc: "Professional commercial connections guided by integrity and transparency.",
   },
   {
     icon: Building2,
-    title: "Human Resource Solutions",
-    desc: "Tailored HR support built around people and business goals.",
+    title: "Facility Management",
+    desc: "Coordinated facility solutions designed for efficient daily operations.",
+  },
+  {
+    icon: Star,
+    title: "Hospitality Services",
+    desc: "People-first hospitality support focused on service quality and experience.",
+  },
+  {
+    icon: Building2,
+    title: "E-Commerce",
+    desc: "Business guidance for brands and organizations growing through digital commerce.",
+  },
+  {
+    icon: ClipboardList,
+    title: "Organization & Event Management",
+    desc: "Structured planning and coordination for organizations and professional events.",
+  },
+  {
+    icon: FileText,
+    title: "Document & Office Support",
+    desc: "Photocopying, document preparation and specialized office support activities.",
+  },
+  {
+    icon: Compass,
+    title: "Lifestyle Development Consultancy",
+    desc: "Purposeful guidance that supports personal development and better outcomes.",
   },
 ];
 
 const values = [
   {
     n: "01",
-    title: "Trusted Partner",
-    desc: "Building trust through integrity, transparent communication and professional guidance every step of the way.",
+    title: "Trusted Employers",
+    desc: "Connected with legal, trusted companies and recruitment agencies across the UAE.",
   },
   {
     n: "02",
-    title: "People First",
-    desc: "Every individual deserves personalized support, meaningful opportunities and a trusted partner throughout their journey.",
+    title: "Legitimate Opportunities",
+    desc: "Professional recruitment assistance focused on legitimate employment opportunities.",
   },
   {
     n: "03",
-    title: "Meaningful Opportunities",
-    desc: "Creating opportunities that empower individuals to achieve personal growth, professional success and a brighter future.",
+    title: "Open to Everyone",
+    desc: "Opportunities are open to all nationalities, wherever you are in your journey.",
   },
   {
     n: "04",
-    title: "Lasting Impact",
-    desc: "True success is measured by the lasting impact we create through trusted partnerships and meaningful opportunities.",
+    title: "Your Future, Our Priority",
+    desc: "Client-focused, results-driven support delivered with integrity and transparency.",
   },
 ];
 
 const jobs = [
   {
-    title: "Support",
-    desc: "Explore diverse opportunities across multiple growing industries today.",
-    img: "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    title: "Barista",
-    desc: "Craft quality beverages while creating memorable customer experiences.",
-    img: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80",
+    title: "Housekeeping",
+    desc: "Opportunities across hospitals, hotels and salons.",
+    img: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=900&q=80",
   },
   {
     title: "Waitress",
@@ -136,8 +142,13 @@ const jobs = [
     img: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=80",
   },
   {
-    title: "Salon Staff",
-    desc: "Deliver premium beauty services with outstanding customer care.",
+    title: "Sales Lady",
+    desc: "Assist customers and support daily retail sales goals.",
+    img: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=80",
+  },
+  {
+    title: "Salon Hairdresser",
+    desc: "Provide professional hair and salon services.",
     img: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=900&q=80",
   },
   {
@@ -146,9 +157,9 @@ const jobs = [
     img: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=900&q=80",
   },
   {
-    title: "Sales Associate",
-    desc: "Assist customers while achieving daily sales targets successfully.",
-    img: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=80",
+    title: "Manicurist / Pedicurist",
+    desc: "Deliver careful, high-quality nail care services.",
+    img: "https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=900&q=80",
   },
   {
     title: "Lady Driver",
@@ -156,14 +167,39 @@ const jobs = [
     img: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=900&q=80",
   },
   {
-    title: "Housekeeping Staff",
-    desc: "Maintain clean, comfortable and welcoming guest environments daily.",
-    img: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=900&q=80",
+    title: "Florist",
+    desc: "Create floral arrangements and provide attentive customer service.",
+    img: "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=900&q=80",
   },
   {
-    title: "Cleaner",
-    desc: "Ensure clean, organized and hygienic environments through quality cleaning services.",
+    title: "Clearance / Establishment Staff",
+    desc: "Support establishment, clearance and administrative processes.",
+    img: "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=900&q=80",
+  },
+  {
+    title: "Secretary",
+    desc: "Coordinate schedules, communication and daily office administration.",
+    img: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=900&q=80",
+  },
+  {
+    title: "Housemaid",
+    desc: "Provide dependable household cleaning and daily home support.",
     img: "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=900&q=80",
+  },
+  {
+    title: "Nanny",
+    desc: "Provide responsible, attentive support for children and families.",
+    img: "https://images.unsplash.com/photo-1602030028438-4cf153cbae9e?auto=format&fit=crop&w=900&q=80",
+  },
+  {
+    title: "Tutor / Nanny",
+    desc: "Combine learning support with attentive childcare.",
+    img: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=900&q=80",
+  },
+  {
+    title: "Cook",
+    desc: "Prepare quality meals while maintaining a clean, safe kitchen.",
+    img: "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=900&q=80",
   },
 ];
 
@@ -330,6 +366,40 @@ const contacts = [
   { label: "Bosshr", number: "+971 56 423 2141" },
 ];
 
+const contactPages = [
+  {
+    label: "YouTube",
+    value: "@BossHr2026",
+    href: "https://www.youtube.com/@BossHr2026",
+    logoSrc: "https://cdn.simpleicons.org/youtube/FF0000",
+  },
+  {
+    label: "Facebook",
+    value: "",
+    href: "",
+    logoSrc: "https://cdn.simpleicons.org/facebook/1877F2",
+  },
+  { label: "Website", value: "", href: "", logoSrc: "" },
+  {
+    label: "TikTok",
+    value: "@bosshr18",
+    href: "https://www.tiktok.com/@bosshr18",
+    logoSrc: "https://cdn.simpleicons.org/tiktok/000000",
+  },
+  {
+    label: "WhatsApp",
+    value: "+971 50 238 1130",
+    href: "https://wa.me/971502381130",
+    logoSrc: "https://cdn.simpleicons.org/whatsapp/25D366",
+  },
+  {
+    label: "Gmail",
+    value: "bosshrteamcc18@gmail.com",
+    href: "mailto:bosshrteamcc18@gmail.com",
+    logoSrc: "https://cdn.simpleicons.org/gmail/EA4335",
+  },
+];
+
 const nav = [
   { href: "#about", label: "About" },
   { href: "#services", label: "Services" },
@@ -438,6 +508,14 @@ function useInteractiveMarquee(
   const onPointerDown = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>) => {
       if (!interactive || (event.pointerType === "mouse" && event.button !== 0)) return;
+
+      // Let touchscreens use the browser's native, momentum-based horizontal scrolling.
+      // The custom drag implementation is reserved for mouse and pen input so it does
+      // not compete with vertical page scrolling on mobile.
+      if (event.pointerType === "touch") {
+        pauseUntilIdle();
+        return;
+      }
 
       dragRef.current = {
         active: true,
@@ -743,7 +821,7 @@ function Index() {
               src={heroImg}
               width={1536}
               height={1024}
-              alt="BOSSHR Team Consultancy office overlooking the Dubai skyline"
+              alt="BOSSHR Team Consultancy office in Dubai"
               fetchPriority="high"
               initial={reduceMotion ? false : { scale: 1.08 }}
               animate={{ scale: 1 }}
@@ -760,28 +838,28 @@ function Index() {
                   transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <span className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary/40 px-3 py-1 text-xs font-medium tracking-wide text-primary-foreground/80 uppercase backdrop-blur-sm">
-                    <span className="h-1.5 w-1.5 rounded-full bg-gold" /> BOSSHR Team Consultancy
-                    FZC · Dubai, UAE
+                    <span className="h-1.5 w-1.5 rounded-full bg-gold" /> Open to all nationalities
+                    · Dubai, UAE
                   </span>
                   <h1 className="mt-5 font-display text-4xl leading-[1.05] font-medium tracking-tight sm:mt-6 sm:text-5xl lg:text-7xl">
-                    A bridge to <em className="italic text-gold">better</em> opportunities.
+                    Your bridge to <em className="italic text-gold">new opportunities</em> in Dubai.
                   </h1>
                   <p className="mt-5 max-w-xl text-base leading-relaxed text-primary-foreground/85 sm:mt-6 lg:text-lg">
-                    Trusted career guidance, employment consultancy and professional HR support —
-                    helping individuals and businesses achieve their goals with confidence.
+                    We connect talent with legitimate employment opportunities and help businesses
+                    grow through people, strategy and practical solutions.
                   </p>
                   <div className="mt-6 flex flex-wrap justify-start gap-3 sm:mt-8">
                     <a
-                      href="#services"
+                      href="#careers"
                       className="inline-flex items-center gap-1.5 rounded-full bg-gold px-6 py-3 text-sm font-medium text-gold-foreground transition-transform hover:-translate-y-0.5"
                     >
-                      Our services <ArrowUpRight className="h-4 w-4" />
+                      View positions <ArrowUpRight className="h-4 w-4" />
                     </a>
                     <a
-                      href="#about"
+                      href="#services"
                       className="inline-flex items-center gap-1.5 rounded-full border border-primary-foreground/30 bg-primary-foreground/10 px-6 py-3 text-sm font-medium text-primary-foreground backdrop-blur-sm transition-colors hover:bg-primary-foreground/20"
                     >
-                      About us
+                      Our services
                     </a>
                   </div>
                 </motion.div>
@@ -811,21 +889,22 @@ function Index() {
             <Reveal className="lg:col-span-5">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">About Us</p>
               <h2 className="mt-4 max-w-xl text-balance font-display text-4xl font-medium leading-tight sm:text-5xl">
-                Helping people move forward with confidence.
+                We build bridges from people to opportunities.
               </h2>
             </Reveal>
 
             <Reveal className="lg:col-span-6 lg:col-start-7">
               <div className="max-w-2xl space-y-5 font-sans text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
                 <p>
-                  BOSSHR Team Consultancy FZC provides trusted career guidance, meaningful
-                  employment opportunities and professional HR support for individuals and
-                  businesses across the UAE.
+                  BOSSHR Team Consultancy FZC is a legitimate, UAE-based consultancy connecting
+                  people with trusted employers and helping organizations grow with the right
+                  people and strategies.
                 </p>
                 <p>
-                  From the first conversation to the next career step, our approach is clear,
-                  personal and focused on practical results. We believe every journey deserves the
-                  right direction — and every person deserves a stronger future.
+                  We serve all nationalities, wherever they are, with professional recruitment
+                  assistance and access to legitimate employment opportunities in the UAE. Our
+                  work is guided by integrity, transparency and compliance with UAE laws and
+                  regulations.
                 </p>
               </div>
 
@@ -834,7 +913,7 @@ function Index() {
                   Our purpose
                 </p>
                 <p className="mt-2 max-w-xl font-sans text-base font-medium leading-7 text-foreground">
-                  To connect people with opportunities that support lasting professional growth.
+                  Bridging people to opportunities and building futures together.
                 </p>
               </div>
             </Reveal>
@@ -850,12 +929,12 @@ function Index() {
                   Our Services
                 </p>
                 <h2 className="mt-3 max-w-2xl font-display text-4xl font-medium md:text-5xl">
-                  Solutions that create lasting impact.
+                  People, strategy and solutions for growth.
                 </h2>
               </div>
               <p className="max-w-md text-muted-foreground">
-                From career guidance to full HR support, every service is built around trust,
-                clarity and outcomes.
+                Professional consultancy and business support delivered with integrity,
+                transparency and a focus on results.
               </p>
             </Reveal>
 
@@ -890,11 +969,11 @@ function Index() {
           <div className="container-x">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Why BOSSHR</p>
             <h2 className="mt-3 max-w-3xl font-display text-4xl font-medium md:text-5xl">
-              A consultancy built on trust.
+              Why choose BOSSHR Team Consultancy?
             </h2>
             <p className="mt-4 max-w-2xl text-primary-foreground/70">
-              Helping individuals build brighter futures through trusted guidance, meaningful
-              opportunities and genuine support.
+              Licensed, trusted and professionally committed to connecting talent with the right
+              opportunities across the UAE.
             </p>
 
             <div className="mt-12 grid gap-6 md:grid-cols-2 lg:mt-14 lg:grid-cols-4">
@@ -957,7 +1036,7 @@ function Index() {
                 onScroll={discoverMarquee.onScroll}
                 onFocusCapture={discoverMarquee.onFocusCapture}
                 onBlurCapture={discoverMarquee.onBlurCapture}
-                className="cursor-grab touch-pan-y overflow-x-auto overscroll-x-contain select-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold focus-visible:outline-none active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                className="cursor-grab touch-auto overflow-x-auto overscroll-x-contain select-none [-webkit-overflow-scrolling:touch] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold focus-visible:outline-none active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               >
                 <div className="flex w-max gap-4">
                   {discoverLoopMedia.map((media, index) => {
@@ -1084,14 +1163,14 @@ function Index() {
             <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
-                  Career Listings
+                  Available Positions
                 </p>
                 <h2 className="mt-3 max-w-2xl font-display text-4xl font-medium md:text-5xl">
-                  Explore opportunities with BOSSHR.
+                  Free job opportunities in the UAE.
                 </h2>
                 <p className="mt-4 max-w-xl text-muted-foreground">
-                  Discover career opportunities across various industries. Find a role that matches
-                  your skills, experience and professional goals.
+                  Open to all nationalities, wherever you are. Applicants inside the UAE can attend
+                  a free walk-in interview—bring an updated CV or résumé.
                 </p>
               </div>
               <button
@@ -1136,7 +1215,7 @@ function Index() {
                 className={
                   showAllJobs
                     ? "overflow-visible"
-                    : "cursor-grab touch-pan-y overflow-x-auto overscroll-x-contain select-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold focus-visible:outline-none active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                    : "cursor-grab touch-auto overflow-x-auto overscroll-x-contain select-none [-webkit-overflow-scrolling:touch] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold focus-visible:outline-none active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 }
               >
                 <motion.div
@@ -1268,7 +1347,7 @@ function Index() {
                 className={
                   showAllTeam
                     ? "overflow-visible"
-                    : "cursor-grab touch-pan-y overflow-x-auto overscroll-x-contain select-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold focus-visible:outline-none active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                    : "cursor-grab touch-auto overflow-x-auto overscroll-x-contain select-none [-webkit-overflow-scrolling:touch] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold focus-visible:outline-none active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 }
               >
                 <motion.div
@@ -1398,7 +1477,7 @@ function Index() {
                 className={
                   showAllTestimonials
                     ? "overflow-visible"
-                    : "cursor-grab touch-pan-y overflow-x-auto overscroll-x-contain select-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold focus-visible:outline-none active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                    : "cursor-grab touch-auto overflow-x-auto overscroll-x-contain select-none [-webkit-overflow-scrolling:touch] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold focus-visible:outline-none active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 }
               >
                 <motion.div
@@ -1568,6 +1647,63 @@ function Index() {
                       </span>
                     </span>
                   </a>
+                </div>
+
+                <div className="mt-10 border-t border-border pt-8">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+                    Our pages
+                  </p>
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {contactPages.map(({ label, value, href, logoSrc }) => {
+                      const content = (
+                        <>
+                          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                            {logoSrc ? (
+                              <img
+                                src={logoSrc}
+                                alt=""
+                                aria-hidden="true"
+                                width={22}
+                                height={22}
+                                loading="lazy"
+                                className="h-[22px] w-[22px] object-contain"
+                              />
+                            ) : (
+                              <Globe2 className="h-5 w-5" aria-hidden="true" />
+                            )}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                              {label}
+                            </span>
+                            <span className="mt-1 block min-h-5 truncate text-sm font-medium">
+                              {value}
+                            </span>
+                          </span>
+                        </>
+                      );
+
+                      return href ? (
+                        <a
+                          key={label}
+                          href={href}
+                          target={href.startsWith("http") ? "_blank" : undefined}
+                          rel={href.startsWith("http") ? "noreferrer" : undefined}
+                          className="flex min-h-20 items-center gap-3 rounded-xl border border-border bg-background p-4 transition-colors hover:border-gold hover:bg-secondary/50"
+                        >
+                          {content}
+                        </a>
+                      ) : (
+                        <div
+                          key={label}
+                          aria-label={`${label} page details not provided`}
+                          className="flex min-h-20 items-center gap-3 rounded-xl border border-border bg-background p-4"
+                        >
+                          {content}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </Reveal>

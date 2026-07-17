@@ -86,7 +86,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "BOSSHR Team Consultancy" },
       {
         property: "og:description",
-        content: "Trusted career guidance, recruitment and HR consultancy across the UAE.",
+        content:
+          "BOSSHR Team Consultancy connects all nationalities with legitimate UAE job opportunities and supports businesses through HR, strategy and consultancy services.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -96,12 +97,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.ico?v=bosshr-2", sizes: "any" },
       { rel: "icon", href: "/favicon.png?v=bosshr-2", type: "image/png", sizes: "128x128" },
       { rel: "apple-touch-icon", href: "/favicon.png?v=bosshr-2" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap",
-      },
     ],
   }),
   shellComponent: RootShell,
