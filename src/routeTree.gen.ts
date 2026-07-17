@@ -9,38 +9,126 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PostsRouteImport } from './routes/posts'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as PostsSlugRouteImport } from './routes/posts.$slug'
+import { Route as MediaIdRouteImport } from './routes/media.$id'
+import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as ApiAdminMediaRouteImport } from './routes/api.admin.media'
 
+const PostsRoute = PostsRouteImport.update({
+  id: '/posts',
+  path: '/posts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PostsSlugRoute = PostsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => PostsRoute,
+} as any)
+const MediaIdRoute = MediaIdRouteImport.update({
+  id: '/media/$id',
+  path: '/media/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/admin/login',
+  path: '/admin/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminMediaRoute = ApiAdminMediaRouteImport.update({
+  id: '/api/admin/media',
+  path: '/api/admin/media',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/posts': typeof PostsRouteWithChildren
+  '/admin/login': typeof AdminLoginRoute
+  '/media/$id': typeof MediaIdRoute
+  '/posts/$slug': typeof PostsSlugRoute
+  '/admin/': typeof AdminIndexRoute
+  '/api/admin/media': typeof ApiAdminMediaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/posts': typeof PostsRouteWithChildren
+  '/admin/login': typeof AdminLoginRoute
+  '/media/$id': typeof MediaIdRoute
+  '/posts/$slug': typeof PostsSlugRoute
+  '/admin': typeof AdminIndexRoute
+  '/api/admin/media': typeof ApiAdminMediaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/posts': typeof PostsRouteWithChildren
+  '/admin/login': typeof AdminLoginRoute
+  '/media/$id': typeof MediaIdRoute
+  '/posts/$slug': typeof PostsSlugRoute
+  '/admin/': typeof AdminIndexRoute
+  '/api/admin/media': typeof ApiAdminMediaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/posts'
+    | '/admin/login'
+    | '/media/$id'
+    | '/posts/$slug'
+    | '/admin/'
+    | '/api/admin/media'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/posts'
+    | '/admin/login'
+    | '/media/$id'
+    | '/posts/$slug'
+    | '/admin'
+    | '/api/admin/media'
+  id:
+    | '__root__'
+    | '/'
+    | '/posts'
+    | '/admin/login'
+    | '/media/$id'
+    | '/posts/$slug'
+    | '/admin/'
+    | '/api/admin/media'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PostsRoute: typeof PostsRouteWithChildren
+  AdminLoginRoute: typeof AdminLoginRoute
+  MediaIdRoute: typeof MediaIdRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  ApiAdminMediaRoute: typeof ApiAdminMediaRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/posts': {
+      id: '/posts'
+      path: '/posts'
+      fullPath: '/posts'
+      preLoaderRoute: typeof PostsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +136,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/posts/$slug': {
+      id: '/posts/$slug'
+      path: '/$slug'
+      fullPath: '/posts/$slug'
+      preLoaderRoute: typeof PostsSlugRouteImport
+      parentRoute: typeof PostsRoute
+    }
+    '/media/$id': {
+      id: '/media/$id'
+      path: '/media/$id'
+      fullPath: '/media/$id'
+      preLoaderRoute: typeof MediaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/admin/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/media': {
+      id: '/api/admin/media'
+      path: '/api/admin/media'
+      fullPath: '/api/admin/media'
+      preLoaderRoute: typeof ApiAdminMediaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface PostsRouteChildren {
+  PostsSlugRoute: typeof PostsSlugRoute
+}
+
+const PostsRouteChildren: PostsRouteChildren = {
+  PostsSlugRoute: PostsSlugRoute,
+}
+
+const PostsRouteWithChildren = PostsRoute._addFileChildren(PostsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PostsRoute: PostsRouteWithChildren,
+  AdminLoginRoute: AdminLoginRoute,
+  MediaIdRoute: MediaIdRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  ApiAdminMediaRoute: ApiAdminMediaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -34,6 +34,7 @@ import {
   Globe2,
   Maximize2,
   Menu,
+  LockKeyhole,
   Play,
   X,
 } from "lucide-react";
@@ -404,6 +405,7 @@ const nav = [
   { href: "#about", label: "About" },
   { href: "#services", label: "Services" },
   { href: "#careers", label: "Careers" },
+  { href: "/posts", label: "Updates" },
   { href: "#team", label: "Team" },
   { href: "#contact", label: "Contact" },
 ];
@@ -745,12 +747,20 @@ function Index() {
               </a>
             ))}
           </nav>
-          <a
-            href="#contact"
-            className="hidden items-center gap-1.5 rounded-full bg-gold px-4 py-2 text-sm font-medium text-gold-foreground transition-transform hover:-translate-y-0.5 lg:inline-flex"
-          >
-            Get in touch <ArrowUpRight className="h-4 w-4" />
-          </a>
+          <div className="hidden items-center gap-2 lg:flex">
+            <a
+              href="/admin/login"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-white/25 px-4 text-sm font-medium text-white transition-colors hover:border-white/45 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            >
+              <LockKeyhole className="h-4 w-4" aria-hidden="true" /> Admin Login
+            </a>
+            <a
+              href="#contact"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-gold px-4 text-sm font-medium text-gold-foreground transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              Get in touch <ArrowUpRight className="h-4 w-4" />
+            </a>
+          </div>
           <button
             type="button"
             aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
@@ -805,6 +815,13 @@ function Index() {
                     className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-gold px-5 py-2.5 text-sm font-medium text-gold-foreground"
                   >
                     Get in touch <ArrowUpRight className="h-4 w-4" />
+                  </a>
+                  <a
+                    href="/admin/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="mt-3 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/25 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                  >
+                    <LockKeyhole className="h-4 w-4" aria-hidden="true" /> Admin Login
                   </a>
                 </div>
               </motion.nav>
@@ -897,14 +914,13 @@ function Index() {
               <div className="max-w-2xl space-y-5 font-sans text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
                 <p>
                   BOSSHR Team Consultancy FZC is a legitimate, UAE-based consultancy connecting
-                  people with trusted employers and helping organizations grow with the right
-                  people and strategies.
+                  people with trusted employers and helping organizations grow with the right people
+                  and strategies.
                 </p>
                 <p>
                   We serve all nationalities, wherever they are, with professional recruitment
-                  assistance and access to legitimate employment opportunities in the UAE. Our
-                  work is guided by integrity, transparency and compliance with UAE laws and
-                  regulations.
+                  assistance and access to legitimate employment opportunities in the UAE. Our work
+                  is guided by integrity, transparency and compliance with UAE laws and regulations.
                 </p>
               </div>
 
@@ -933,8 +949,8 @@ function Index() {
                 </h2>
               </div>
               <p className="max-w-md text-muted-foreground">
-                Professional consultancy and business support delivered with integrity,
-                transparency and a focus on results.
+                Professional consultancy and business support delivered with integrity, transparency
+                and a focus on results.
               </p>
             </Reveal>
 

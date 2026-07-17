@@ -1,0 +1,5 @@
+# Copy this file to .dev.vars for local Cloudflare development.
+# Set the production values with `wrangler secret put` instead of committing them.
+CMS_ADMIN_EMAIL=admin@example.com
+CMS_ADMIN_PASSWORD=replace-with-a-strong-password
+CMS_SESSION_SECRET=replace-with-at-least-32-random-characters
