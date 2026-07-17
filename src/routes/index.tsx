@@ -738,7 +738,7 @@ function Index() {
       <main id="main-content" tabIndex={-1}>
         {/* HERO */}
         <section id="top" className="relative overflow-hidden border-b border-border/60">
-          <div className="relative bg-primary">
+          <div className="relative min-h-[calc(100svh-5rem)] bg-primary sm:min-h-[680px] lg:min-h-[760px]">
             <motion.img
               src={heroImg}
               width={1536}
@@ -747,11 +747,11 @@ function Index() {
               fetchPriority="high"
               initial={reduceMotion ? false : { scale: 1.08 }}
               animate={{ scale: 1 }}
-              transition={{ duration: 2.2, ease: [0.22, 1, 0.36, 1] }}
-              className="block h-auto w-full origin-center transform-gpu"
+              transition={{ duration: 5, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute inset-0 h-full w-full origin-center object-cover object-center transform-gpu"
             />
-            <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-black/55 via-black/15 to-transparent lg:block" />
-            <div className="bg-neutral-950 py-14 lg:absolute lg:inset-0 lg:flex lg:items-center lg:bg-transparent lg:py-0">
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-black/5 lg:bg-gradient-to-r lg:from-black/65 lg:via-black/20 lg:to-transparent" />
+            <div className="absolute inset-0 flex items-end py-10 sm:py-14 lg:items-center lg:py-0">
               <div className="container-x">
                 <motion.div
                   className="flex max-w-2xl flex-col items-start text-left text-primary-foreground lg:max-w-[52%]"
@@ -763,14 +763,14 @@ function Index() {
                     <span className="h-1.5 w-1.5 rounded-full bg-gold" /> BOSSHR Team Consultancy
                     FZC · Dubai, UAE
                   </span>
-                  <h1 className="mt-6 font-display text-4xl leading-[1.05] font-medium tracking-tight sm:text-5xl lg:text-7xl">
+                  <h1 className="mt-5 font-display text-4xl leading-[1.05] font-medium tracking-tight sm:mt-6 sm:text-5xl lg:text-7xl">
                     A bridge to <em className="italic text-gold">better</em> opportunities.
                   </h1>
-                  <p className="mt-6 max-w-xl text-base leading-relaxed text-primary-foreground/80 lg:text-lg">
+                  <p className="mt-5 max-w-xl text-base leading-relaxed text-primary-foreground/85 sm:mt-6 lg:text-lg">
                     Trusted career guidance, employment consultancy and professional HR support —
                     helping individuals and businesses achieve their goals with confidence.
                   </p>
-                  <div className="mt-8 flex flex-wrap justify-start gap-3">
+                  <div className="mt-6 flex flex-wrap justify-start gap-3 sm:mt-8">
                     <a
                       href="#services"
                       className="inline-flex items-center gap-1.5 rounded-full bg-gold px-6 py-3 text-sm font-medium text-gold-foreground transition-transform hover:-translate-y-0.5"
